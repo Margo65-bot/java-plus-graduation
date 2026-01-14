@@ -2,7 +2,9 @@ package ru.practicum.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -16,63 +18,67 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-
 @Slf4j
 @Component
 public class StatsClientRestImpl implements StatsClient {
 
-    private final String baseUrl;
-    private final DateTimeFormatter dateTimeFormatter;
-    private final RestClient restClient;
+    private static final String STATS_SERVICE_ID = "stats-server";
+
+    private final DiscoveryClient discoveryClient;
+    private final DateTimeFormatter formatter;
 
     public StatsClientRestImpl(
-            @Value("${stats.service.name}") String baseUrl,
-            @Value("${stats.date_time.format}") String dateTamePattern
+            DiscoveryClient discoveryClient,
+            @Value("${stats.date_time.format}") String pattern
     ) {
-        this.baseUrl = baseUrl;
-        this.dateTimeFormatter = DateTimeFormatter.ofPattern(dateTamePattern);
-        this.restClient = RestClient.builder()
-                .baseUrl(baseUrl)
-                .build();
+        this.discoveryClient = discoveryClient;
+        this.formatter = DateTimeFormatter.ofPattern(pattern);
     }
 
     @Override
     public void hit(HitCreateDto dto) {
         try {
-            restClient.post()
+            RestClient.create(getBaseUrl())
+                    .post()
                     .uri("/hit")
-                    .contentType(APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .body(dto)
                     .retrieve()
                     .toBodilessEntity();
         } catch (Exception e) {
-            log.warn("Failed to send hit to stats service", e);
-            throw e;
+            log.warn("Failed to send hit to stats-server", e);
         }
     }
 
     @Override
     public List<ResponseStatsDto> get(RequestStatsDto requestStatsDto) {
         try {
-            URI uri = UriComponentsBuilder.fromUri(URI.create(baseUrl))
-                    .path("/stats")
-                    .queryParam("start", requestStatsDto.start().format(dateTimeFormatter))
-                    .queryParam("end", requestStatsDto.end().format(dateTimeFormatter))
+            URI uri = UriComponentsBuilder
+                    .fromPath("/stats")
+                    .queryParam("start", requestStatsDto.start().format(formatter))
+                    .queryParam("end", requestStatsDto.end().format(formatter))
                     .queryParam("unique", requestStatsDto.unique())
                     .queryParamIfPresent("uris", Optional.ofNullable(requestStatsDto.uris()))
                     .build()
                     .toUri();
 
-            return restClient.get()
+            return RestClient.create(getBaseUrl())
+                    .get()
                     .uri(uri)
-                    .accept(APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
-                    .body(new ParameterizedTypeReference<>() {
-                    });
+                    .body(new ParameterizedTypeReference<List<ResponseStatsDto>>() {});
         } catch (Exception e) {
-            log.warn("Failed to get stats from stats service", e);
+            log.warn("Failed to get stats from stats-server", e);
             return Collections.emptyList();
         }
+    }
+
+    private String getBaseUrl() {
+        return discoveryClient.getInstances(STATS_SERVICE_ID).stream()
+                .findFirst()
+                .map(instance -> instance.getUri().toString())
+                .orElseThrow(() ->
+                        new IllegalStateException("stats-server not found in Eureka"));
     }
 }
