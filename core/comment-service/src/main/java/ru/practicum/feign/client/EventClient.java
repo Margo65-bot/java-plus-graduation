@@ -3,6 +3,9 @@ package ru.practicum.feign.client;
 import org.springframework.cloud.openfeign.FeignClient;
 import ru.practicum.api.event.InternalEventApi;
 
-@FeignClient(name = "event-service")
+@FeignClient(
+        name = "event-service",
+        configuration = EventFeignConfig.class
+)
 public interface EventClient extends InternalEventApi {
 }
