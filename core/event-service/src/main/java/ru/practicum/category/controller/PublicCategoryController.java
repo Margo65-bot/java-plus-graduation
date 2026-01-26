@@ -23,8 +23,8 @@ public class PublicCategoryController implements PublicCategoryApi {
     }
 
     @Override
-    public CategoryDto getCategoryById(Long categoryId) {
-        log.info("Public: Method launched (deleteById(Long categoryId = {}))", categoryId);
-        return categoryService.findById(categoryId);
+    public CategoryDto getCategoryById(Long catId) {
+        log.info("Public: Method launched (deleteById(Long categoryId = {}))", catId);
+        return categoryService.findById(catId);
     }
 }

@@ -8,7 +8,7 @@ import ru.practicum.feign.decoder.UserErrorDecoder;
 @Configuration
 public class UserFeignConfig {
     @Bean
-    public ErrorDecoder requestFeignErrorDecoder() {
+    public ErrorDecoder userFeignErrorDecoder() {
         return new UserErrorDecoder();
     }
 }

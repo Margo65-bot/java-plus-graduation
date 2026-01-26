@@ -102,29 +102,60 @@ public class EventServiceImpl implements EventService {
     public List<EventShortDto> findPublicEvents(EventPublicParam params) {
         int from = params.from();
         int size = params.size();
+
         Sort defaultSort = Sort.by("eventDate");
         Pageable pageable = new OffsetBasedPageable(from, size, defaultSort);
-        BooleanBuilder predicate;
 
-        if (params.onlyAvailable() != null && params.onlyAvailable()) {
-            List<Long> availableIds = eventRepository.findEventIdsWithAvailableSlots();
-            if (availableIds.isEmpty()) {
-                return Collections.emptyList();
-            }
-            predicate = EventRepository.Predicate.publicFilters(params, availableIds);
-        } else {
-            predicate = EventRepository.Predicate.publicFilters(params);
-        }
+        BooleanBuilder predicate = EventRepository.Predicate.publicFilters(params);
 
         List<Event> events = eventRepository
                 .findAll(predicate, pageable)
                 .getContent();
 
-        setViewsAndConfirmedRequests(events);
+        if (events.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        Comparator<EventShortDto> comparator = createEventShortDtoComparator(params.sort());
+        if (params.onlyAvailable() == null || !params.onlyAvailable()) {
+            setViewsAndConfirmedRequests(events);
 
-        return events.stream()
+            Comparator<EventShortDto> comparator =
+                    createEventShortDtoComparator(params.sort());
+
+            return events.stream()
+                    .map(eventMapper::toShortDto)
+                    .sorted(comparator)
+                    .collect(Collectors.toList());
+        }
+
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .toList();
+
+        Map<Long, Long> confirmedCounts =
+                requestClient.findConfirmedRequestsCountForList(eventIds);
+
+        List<Event> availableEvents = events.stream()
+                .filter(event -> {
+                    if (event.getParticipantLimit() == 0) {
+                        return true;
+                    }
+                    long confirmed =
+                            confirmedCounts.getOrDefault(event.getId(), 0L);
+                    return confirmed < event.getParticipantLimit();
+                })
+                .toList();
+
+        if (availableEvents.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        setViewsAndConfirmedRequests(availableEvents);
+
+        Comparator<EventShortDto> comparator =
+                createEventShortDtoComparator(params.sort());
+
+        return availableEvents.stream()
                 .map(eventMapper::toShortDto)
                 .sorted(comparator)
                 .collect(Collectors.toList());
@@ -151,7 +182,7 @@ public class EventServiceImpl implements EventService {
         userClient.validateUser(userId);
 
         Pageable pageable = new OffsetBasedPageable(from, size, defaultSort);
-        List<Event> events = eventRepository.findAllByInitiator_Id(userId, pageable);
+        List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
 
         setViewsAndConfirmedRequests(events);
 
@@ -176,7 +207,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventFullDto findUserEventById(Long eventId, Long userId) {
-        Event event = eventRepository.findByIdAndInitiator_Id(eventId, userId).orElseThrow(
+        Event event = eventRepository.findByIdAndInitiatorId(eventId, userId).orElseThrow(
                 () -> new NotFoundException(String.format("Event with id %d by user %d not found", eventId, userId))
         );
         setViewsAndConfirmedRequests(event);
@@ -186,7 +217,7 @@ public class EventServiceImpl implements EventService {
     @Transactional
     @Override
     public EventFullDto updateUserEvent(UpdateEventUserRequestParam requestParam) {
-        Event event = eventRepository.findByIdAndInitiator_Id(requestParam.eventId(), requestParam.userId())
+        Event event = eventRepository.findByIdAndInitiatorId(requestParam.eventId(), requestParam.userId())
                 .orElseThrow(
                         () -> new NotFoundException(
                                 String.format(
@@ -228,7 +259,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventRequestStatusUpdateResult updateRequestStatus(EventRequestStatusUpdateRequestParam requestParam) {
         EventRequestStatusUpdateRequest updateRequest = requestParam.updateRequest();
-        Event event = eventRepository.findByIdAndInitiator_Id(requestParam.eventId(), requestParam.userId())
+        Event event = eventRepository.findByIdAndInitiatorId(requestParam.eventId(), requestParam.userId())
                 .orElseThrow(
                         () -> new NotFoundException(
                                 String.format(
@@ -342,7 +373,7 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         Map<Long, Long> viewsMap = getViewsForEvents(eventIds);
-        Map<Long, Long> confirmedRequestsMap = requestClient.findConfirmedRequestsCountForList(eventIds);;
+        Map<Long, Long> confirmedRequestsMap = requestClient.findConfirmedRequestsCountForList(eventIds);
 
         events.forEach(event -> {
             event.setViews(viewsMap.getOrDefault(event.getId(), 0L));

@@ -28,28 +28,7 @@ public interface PublicEventApi {
     @GetMapping("/{eventId}")
     @ResponseStatus(HttpStatus.OK)
     EventFullDto findPublicEventById(
-            @Positive(message = "eventId должен быть больше 0") @PathVariable Long id,
+            @Positive(message = "eventId должен быть больше 0") @PathVariable Long eventId,
             HttpServletRequest request
     );
-
-//    // Получение информации о событии для сервиса комментариев
-//    @GetMapping("/events/{eventId}/dto/comment")
-//    @ResponseStatus(HttpStatus.OK)
-//    EventCommentDto getEventCommentDto(
-//            @PathVariable @Positive Long eventId
-//    );
-//
-//    // Получение информации о списке событий для сервиса комментариев
-//    @PostMapping("/events/dto/list/comment")
-//    @ResponseStatus(HttpStatus.OK)
-//    Collection<EventCommentDto> getEventCommentDtoList(
-//            @RequestBody Collection<Long> eventIds
-//    );
-//
-//    // Получение информации о событии для сервиса заявок
-//    @GetMapping("/events/{eventId}/dto/interaction")
-//    @ResponseStatus(HttpStatus.OK)
-//    EventInteractionDto getEventInteractionDto(
-//            @PathVariable @Positive Long eventId
-//    );
 }

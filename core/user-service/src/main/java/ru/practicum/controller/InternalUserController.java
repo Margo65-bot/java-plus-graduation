@@ -2,6 +2,7 @@ package ru.practicum.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.api.user.InternalUserApi;
 import ru.practicum.dto.user.UserShortDto;
@@ -13,6 +14,7 @@ import java.util.Map;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
+@RequestMapping("/internal/users")
 public class InternalUserController implements InternalUserApi {
     private final UserService userService;
 

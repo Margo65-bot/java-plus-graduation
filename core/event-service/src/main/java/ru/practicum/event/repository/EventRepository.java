@@ -162,16 +162,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
 
     Optional<Event> findByIdAndState(Long eventId, State state);
 
-    Optional<Event> findByIdAndInitiator_Id(Long eventId, Long userId);
+    Optional<Event> findByIdAndInitiatorId(Long eventId, Long userId);
 
-    List<Event> findAllByInitiator_Id(Long userId, Pageable pageable);
-
-    @Query("""
-            SELECT e.id
-            FROM Event e
-            LEFT JOIN Request r ON r.event.id = e.id AND r.status = 'CONFIRMED'
-            GROUP BY e.id, e.participantLimit
-            HAVING e.participantLimit = 0 OR COUNT(r) < e.participantLimit
-            """)
-    List<Long> findEventIdsWithAvailableSlots();
+    List<Event> findAllByInitiatorId(Long userId, Pageable pageable);
 }

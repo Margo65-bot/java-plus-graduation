@@ -25,7 +25,7 @@ public interface CompilationEventRepository extends JpaRepository<CompilationEve
     void deleteByCompilationId(@Param("compId") long compilationId);
 
     @Query("""
-            select new ru.practicum.model.compilation.EventCompilationId(c.id, ce.event)
+            select new ru.practicum.compilation.model.EventCompilationId(c.id, ce.event)
               from CompilationEvent as ce
                    join ce.compilation as c
              where c.id in (:compIds)

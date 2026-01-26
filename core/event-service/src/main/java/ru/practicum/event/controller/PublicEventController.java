@@ -37,9 +37,9 @@ public class PublicEventController implements PublicEventApi {
     }
 
     @Override
-    public EventFullDto findPublicEventById(Long id, HttpServletRequest request) {
-        log.info("Public: Method launched (findPublicEventById({}))", id);
-        EventFullDto event = eventService.findPublicEventById(id);
+    public EventFullDto findPublicEventById(Long eventId, HttpServletRequest request) {
+        log.info("Public: Method launched (findPublicEventById({}))", eventId);
+        EventFullDto event = eventService.findPublicEventById(eventId);
         saveHit(request);
         return event;
     }

@@ -1,6 +1,5 @@
 package ru.practicum.repository;
 
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,32 +10,35 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RequestRepository extends JpaRepository<Request, Long> {
+    @Query("""
+        select r
+        from Request r
+        where r.eventId = :eventId
+        """)
+    List<Request> findByEventId(@Param("eventId") Long eventId);
 
     @Query("""
             select r
             from Request r
-            where u.id = :userId
+            where r.requesterId = :userId
             """)
     List<Request> findUserRequests(@Param("userId") long userId);
 
     @Query("""
             select r
             from Request r
-            where u.id = :userId
-                and e.id = :eventId
+            where r.requesterId = :userId
+                and r.eventId = :eventId
             """)
     Optional<Request> findByUserAndEvent(@Param("userId") long userId, @Param("eventId") long eventId);
 
     @Query("""
             select count(r)
             from Request r
-            where e.id = :eventId
+            where r.eventId = :eventId
                 and r.status = :status
             """)
     long countByEventAndStatus(@Param("eventId") long eventId, @Param("status") RequestStatus status);
-
-    @EntityGraph(attributePaths = "event")
-    List<Request> findByEvent_IdAndEvent_Initiator_Id(Long eventId, Long userId);
 
     @Query("""
             SELECT r.eventId, COUNT(r)

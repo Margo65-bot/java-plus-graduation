@@ -32,11 +32,9 @@ public class Request {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne
     @JoinColumn(name = "requester_id", nullable = false)
     private Long requesterId;
 
-    @ManyToOne
     @JoinColumn(name = "event_id", nullable = false)
     private Long eventId;
 
