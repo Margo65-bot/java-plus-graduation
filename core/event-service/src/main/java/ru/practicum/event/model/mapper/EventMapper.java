@@ -21,6 +21,7 @@ import ru.practicum.event.model.Event;
 public interface EventMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "category", source = "category")
     @Mapping(target = "state", source = "state")
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "createdOn", ignore = true)
@@ -32,10 +33,10 @@ public interface EventMapper {
         return toEntity(dto, category, State.PENDING);
     }
 
-    @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
     EventFullDto toFullDto(Event event);
 
-    @Mapping(target = "initiatorId", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
     EventShortDto toShortDto(Event event);
 
     default EventInternalDto toInternalDto(Event event) {

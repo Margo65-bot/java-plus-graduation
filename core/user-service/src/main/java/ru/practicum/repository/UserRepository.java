@@ -12,7 +12,7 @@ public interface UserRepository extends JpaRepository<User, Long>, QuerydslPredi
 
     interface Predicate {
         static BooleanExpression byIds(List<Long> ids) {
-            ru.practicum.model.user.QUser user = QUser.user;
+            ru.practicum.model.QUser user = QUser.user;
             return user.id.in(ids);
         }
     }

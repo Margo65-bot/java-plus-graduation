@@ -60,7 +60,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, QuerydslPre
                 Set<Long> users
         ) {
             if (users != null && !users.isEmpty()) {
-                predicate.and(QEvent.event.initiator.id.in(users));
+                predicate.and(QEvent.event.initiatorId.in(users));
             }
         }
 
