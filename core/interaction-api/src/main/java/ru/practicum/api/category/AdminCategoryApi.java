@@ -25,13 +25,13 @@ public interface AdminCategoryApi {
     @DeleteMapping("/{catId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteCategory(
-            @PathVariable @Positive Long categoryId
+            @PathVariable @Positive Long catId
     );
 
     @PatchMapping("/{catId}")
     @ResponseStatus(HttpStatus.OK)
     CategoryDto updateCategory(
-            @PathVariable @Positive Long categoryId,
+            @PathVariable @Positive Long catId,
             @Valid @RequestBody CategoryDto category
     );
 }

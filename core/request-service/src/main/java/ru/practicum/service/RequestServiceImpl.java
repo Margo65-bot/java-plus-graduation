@@ -107,7 +107,9 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestInternalDto> findByEvent(Long eventId) {
-        return List.of();
+        return requestRepository.findByEventId(eventId).stream()
+                .map(RequestDtoMapper::mapToInternalDto)
+                .toList();
     }
 
     @Override

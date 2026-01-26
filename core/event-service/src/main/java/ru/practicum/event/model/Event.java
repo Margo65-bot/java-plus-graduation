@@ -38,9 +38,7 @@ public class Event {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initiator_id", nullable = false)
-    @ToString.Exclude
     private Long initiatorId;
 
     @ManyToOne(fetch = FetchType.LAZY)

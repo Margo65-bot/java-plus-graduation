@@ -18,6 +18,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
 
     @Override
     @Transactional
@@ -26,9 +27,9 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryRepository.existsByNameIgnoreCaseAndTrim(category.name())) {
             throw new AlreadyExistsException("Категория с названием " + category.name() + " уже существует");
         }
-        saveCat = categoryRepository.save(CategoryMapper.mapToCategory(category));
+        saveCat = categoryRepository.save(categoryMapper.mapToCategory(category));
 
-        return CategoryMapper.mapToCategoryDto(saveCat);
+        return categoryMapper.mapToCategoryDto(saveCat);
     }
 
     @Override
@@ -57,14 +58,14 @@ public class CategoryServiceImpl implements CategoryService {
 
         getCat.setName(catDtoName);
 
-        return CategoryMapper.mapToCategoryDto(categoryRepository.save(getCat));
+        return categoryMapper.mapToCategoryDto(categoryRepository.save(getCat));
     }
 
     @Override
     public CategoryDto findById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Категория с id " + id + " не найдена"));
-        return CategoryMapper.mapToCategoryDto(category);
+        return categoryMapper.mapToCategoryDto(category);
     }
 
     @Override
@@ -72,7 +73,7 @@ public class CategoryServiceImpl implements CategoryService {
         List<Category> categories = categoryRepository.findAllWithOffset(params.from(), params.size());
 
         return categories.stream()
-                .map(CategoryMapper::mapToCategoryDto)
+                .map(categoryMapper::mapToCategoryDto)
                 .toList();
     }
 }

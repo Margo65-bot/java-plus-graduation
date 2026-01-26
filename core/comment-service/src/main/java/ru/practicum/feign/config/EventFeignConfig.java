@@ -8,7 +8,7 @@ import ru.practicum.feign.decoder.EventErrorDecoder;
 @Configuration
 public class EventFeignConfig {
     @Bean
-    public ErrorDecoder requestFeignErrorDecoder() {
+    public ErrorDecoder eventFeignErrorDecoder() {
         return new EventErrorDecoder();
     }
 }

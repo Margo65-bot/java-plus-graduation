@@ -29,7 +29,7 @@ public interface UserApi {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteById(@PathVariable @Positive Long userId);
 
-    @GetMapping("/admin/users")
+    @GetMapping
     @ResponseStatus(HttpStatus.OK)
     List<UserDto> findAll(
             @RequestParam(required = false) List<Long> ids,

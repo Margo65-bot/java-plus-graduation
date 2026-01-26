@@ -6,7 +6,8 @@ import ru.practicum.feign.config.UserFeignConfig;
 
 @FeignClient(
         name = "user-service",
-        configuration = UserFeignConfig.class
+        configuration = UserFeignConfig.class,
+        path = "/internal/users"
 )
 public interface UserClient extends InternalUserApi {
 }

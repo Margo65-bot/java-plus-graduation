@@ -20,14 +20,14 @@ public class AdminCategoryController implements AdminCategoryApi {
     }
 
     @Override
-    public void deleteCategory(Long categoryId) {
-        log.info("Admin: Method launched (delete(Long categoryId = {}))", categoryId);
-        categoryService.delete(categoryId);
+    public void deleteCategory(Long catId) {
+        log.info("Admin: Method launched (delete(Long categoryId = {}))", catId);
+        categoryService.delete(catId);
     }
 
     @Override
-    public CategoryDto updateCategory(Long categoryId, CategoryDto category) {
-        log.info("Admin: Method launched (update(Long categoryId = {}, CategoryDto category = {}))", categoryId, category);
-        return categoryService.update(categoryId, category);
+    public CategoryDto updateCategory(Long catId, CategoryDto category) {
+        log.info("Admin: Method launched (update(Long categoryId = {}, CategoryDto category = {}))", catId, category);
+        return categoryService.update(catId, category);
     }
 }

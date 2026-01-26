@@ -26,6 +26,6 @@ public interface PublicCategoryApi {
     @GetMapping("/{catId}")
     @ResponseStatus(HttpStatus.OK)
     CategoryDto getCategoryById(
-            @PathVariable Long categoryId
+            @PathVariable Long catId
     );
 }

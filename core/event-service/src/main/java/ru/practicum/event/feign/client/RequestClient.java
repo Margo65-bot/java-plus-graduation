@@ -6,7 +6,8 @@ import ru.practicum.event.feign.config.RequestFeignConfig;
 
 @FeignClient(
         name = "request-service",
-        configuration = RequestFeignConfig.class
+        configuration = RequestFeignConfig.class,
+        path = "/internal/requests"
 )
 public interface RequestClient extends InternalRequestApi {
 }

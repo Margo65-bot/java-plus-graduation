@@ -33,14 +33,10 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @ManyToOne
     @JoinColumn(name = "author_id")
-    @ToString.Exclude
     private Long authorId;
 
-    @ManyToOne
     @JoinColumn(name = "event_id")
-    @ToString.Exclude
     private Long eventId;
 
     @Column(nullable = false)

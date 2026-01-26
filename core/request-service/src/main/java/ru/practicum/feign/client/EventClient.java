@@ -6,7 +6,8 @@ import ru.practicum.feign.config.EventFeignConfig;
 
 @FeignClient(
         name = "event-service",
-        configuration = EventFeignConfig.class
+        configuration = EventFeignConfig.class,
+        path = "/internal/events"
 )
 public interface EventClient extends InternalEventApi {
 }

@@ -15,7 +15,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long>, Query
     )
     boolean existsByNameIgnoreCaseAndTrim(@Param("name") String name);
 
-    @Query(value = "SELECT * FROM categories ORDER BY id LIMIT :size OFFSET :from", nativeQuery = true)
+    @Query(value = "SELECT * FROM event_service.categories ORDER BY id LIMIT :size OFFSET :from", nativeQuery = true)
     List<Category> findAllWithOffset(@Param("from") int from,
                                      @Param("size") int size);
 }
