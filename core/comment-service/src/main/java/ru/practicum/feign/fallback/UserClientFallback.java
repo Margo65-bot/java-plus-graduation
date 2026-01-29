@@ -12,7 +12,7 @@ public class UserClientFallback implements UserClient {
 
     @Override
     public void validateUser(Long userId) {
-        // ничего не делаем — считаем пользователя валидным
+
     }
 
     @Override
@@ -23,6 +23,7 @@ public class UserClientFallback implements UserClient {
     @Override
     public Map<Long, UserShortDto> findAllByIds(List<Long> userIds) {
         return userIds.stream()
+                .distinct()
                 .collect(Collectors.toMap(
                         id -> id,
                         id -> new UserShortDto(id, "unknown-user")

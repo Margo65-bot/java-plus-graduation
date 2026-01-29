@@ -7,7 +7,7 @@ import ru.practicum.api.event.AdminEventApi;
 import ru.practicum.dto.event.AdminEventParam;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.UpdateEventAdminRequest;
-import ru.practicum.event.service.EventService;
+import ru.practicum.event.service.AdminEventService;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class AdminEventController implements AdminEventApi {
-    private final EventService eventService;
+    private final AdminEventService eventService;
 
     @Override
     public List<EventFullDto> findAll(AdminEventParam params) {

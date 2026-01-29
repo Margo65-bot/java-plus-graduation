@@ -53,7 +53,12 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class EventServiceImpl implements EventService {
+public class EventServiceImpl implements
+        AdminEventService,
+        PublicEventService,
+        PrivateEventService,
+        InternalEventService
+{
     private static final long MIN_HOURS_BEFORE_PUBLICATION_FOR_ADMIN = 1;
     private static final long MIN_HOURS_BEFORE_UPDATE_FOR_USER = 2;
     private static final LocalDateTime START_DATE_FOR_STAT_REQUEST = LocalDateTime.now().minusYears(1);

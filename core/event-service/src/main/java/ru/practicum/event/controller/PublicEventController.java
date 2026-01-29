@@ -11,7 +11,7 @@ import ru.practicum.dto.HitCreateDto;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventPublicParam;
 import ru.practicum.dto.event.EventShortDto;
-import ru.practicum.event.service.EventService;
+import ru.practicum.event.service.PublicEventService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class PublicEventController implements PublicEventApi {
-    private final EventService eventService;
+    private final PublicEventService eventService;
     private final StatsClient statsClient;
 
     @Value("${stats.service.name}")

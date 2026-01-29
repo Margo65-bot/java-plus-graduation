@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.api.event.InternalEventApi;
 import ru.practicum.dto.event.EventInternalDto;
-import ru.practicum.event.service.EventService;
+import ru.practicum.event.service.InternalEventService;
 
 @RestController
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/internal/events")
 public class InternalEventController implements InternalEventApi {
-    private final EventService eventService;
+    private final InternalEventService eventService;
 
     @Override
     public EventInternalDto findById(Long eventId) {
