@@ -2,6 +2,7 @@ package ru.practicum.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.event.EventInternalDto;
 import ru.practicum.dto.event.EventRequestStatusUpdateResult;
 import ru.practicum.dto.event.State;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class RequestServiceImpl implements RequestService {
     private final RequestRepository requestRepository;
 
@@ -42,6 +44,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto createRequest(long userId, long eventId) {
         userClient.validateUser(userId);
 
@@ -67,6 +70,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto cancelRequest(long userId, long requestId) {
         userClient.validateUser(userId);
         Request request = getRequestById(requestId);
@@ -113,6 +117,7 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public EventRequestStatusUpdateResult updateStatuses(RequestStatusUpdateCommand command) {
         List<Request> requestsToUpdate = requestRepository.findAllById(command.requestIds());
 

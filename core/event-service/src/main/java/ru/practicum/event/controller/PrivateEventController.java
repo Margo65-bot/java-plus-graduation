@@ -14,7 +14,7 @@ import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.dto.event.UpdateEventUserRequestParam;
 import ru.practicum.dto.request.ParticipationRequestDto;
-import ru.practicum.event.service.EventService;
+import ru.practicum.event.service.PrivateEventService;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class PrivateEventController implements PrivateEventApi {
-    private final EventService eventService;
+    private final PrivateEventService eventService;
 
     @Override
     public EventFullDto createEvent(Long userId, NewEventDto dto) {

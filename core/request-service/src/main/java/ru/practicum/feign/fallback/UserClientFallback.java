@@ -24,6 +24,7 @@ public class UserClientFallback implements UserClient {
     @Override
     public Map<Long, UserShortDto> findAllByIds(List<Long> userIds) {
         return userIds.stream()
+                .distinct()
                 .collect(Collectors.toMap(
                         id -> id,
                         id -> new UserShortDto(id, "unknown-user")
