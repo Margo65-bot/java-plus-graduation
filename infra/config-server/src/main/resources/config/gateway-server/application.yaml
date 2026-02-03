@@ -3,79 +3,84 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: true
+          enabled: false
       routes:
-        # Event Routes
+        # Event Routes → EVENT-SERVICE
         - id: event_admin_route
-          uri: lb://main-service
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/admin/events/**
 
         - id: event_user_route
-          uri: lb://main-service
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/users/*/events/**
 
         - id: event_public_route
-          uri: lb://main-service
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/events/**
 
-        # Category Routes
+        # Category Routes → EVENT-SERVICE
         - id: category_admin_route
-          uri: lb://main-service
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/admin/categories/**
 
         - id: category_public_route
-          uri: lb://main-service
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/categories/**
 
-        # Compilation Routes
+        # Compilation Routes → EVENT-SERVICE
         - id: compilation_admin_route
-          uri: lb://main-service
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/admin/compilations/**
 
         - id: compilation_public_route
-          uri: lb://main-service
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/compilations/**
 
-        # User Routes
+        # User Routes → USER-SERVICE
         - id: user_admin_route
-          uri: lb://main-service
+          uri: lb://USER-SERVICE
           predicates:
             - Path=/admin/users,/admin/users/**
 
-        # Request Routes
+        # Request Routes → REQUEST-SERVICE
         - id: request_user_route
-          uri: lb://main-service
+          uri: lb://REQUEST-SERVICE
           predicates:
             - Path=/users/*/requests/**
 
-        # Comment Routes
+        # Comment Routes → COMMENT-SERVICE
         - id: comment_admin_route
-          uri: lb://main-service
+          uri: lb://COMMENT-SERVICE
           predicates:
             - Path=/admin/comments/**
 
         - id: comment_private_route
-          uri: lb://main-service
+          uri: lb://COMMENT-SERVICE
           predicates:
             - Path=/users/*/comments/**
 
         # Stats Routes
         - id: stats_route
-          uri: lb://stats-server
+          uri: lb://STATS-SERVER
           predicates:
             - Path=/stats/**
 
         - id: hit_route
-          uri: lb://stats-server
+          uri: lb://STATS-SERVER
           predicates:
             - Path=/hit/**
 
 server:
   port: 8080
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
