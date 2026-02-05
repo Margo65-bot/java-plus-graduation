@@ -32,10 +32,10 @@ public class Request {
     @Column(name = "id")
     private Long id;
 
-    @JoinColumn(name = "requester_id", nullable = false)
+    @Column(name = "requester_id", nullable = false)
     private Long requesterId;
 
-    @JoinColumn(name = "event_id", nullable = false)
+    @Column(name = "event_id", nullable = false)
     private Long eventId;
 
     @Enumerated(EnumType.STRING)
