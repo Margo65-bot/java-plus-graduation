@@ -34,5 +34,10 @@ public class RequestClientFallback implements RequestClient {
                 List.of()
         );
     }
+
+    @Override
+    public void validateParticipant(Long eventId, Long userId) {
+
+    }
 }
 

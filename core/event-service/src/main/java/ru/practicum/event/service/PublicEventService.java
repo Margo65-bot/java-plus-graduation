@@ -9,5 +9,9 @@ import java.util.List;
 public interface PublicEventService {
     List<EventShortDto> findPublicEvents(EventPublicParam params);
 
-    EventFullDto findPublicEventById(Long eventId);
+    EventFullDto findPublicEventById(Long eventId, Long userId);
+
+    List<EventShortDto> getRecommendationsForUser(Long userId);
+
+    void addLike(Long eventId, Long userId);
 }

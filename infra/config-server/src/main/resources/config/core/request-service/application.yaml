@@ -44,6 +44,21 @@ resilience4j:
           - java.net.ConnectException
           - java.net.SocketTimeoutException
 
+grpc:
+  server:
+    port: 0
+  client:
+    analyzer:
+      address: 'discovery:///analyzer'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+    collector:
+      address: 'discovery:///collector'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
+
 feign:
   client:
     config:

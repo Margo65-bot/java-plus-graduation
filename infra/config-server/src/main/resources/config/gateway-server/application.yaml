@@ -72,11 +72,6 @@ spring:
           predicates:
             - Path=/stats/**
 
-        - id: hit_route
-          uri: lb://STATS-SERVER
-          predicates:
-            - Path=/hit/**
-
 server:
   port: 8080
 

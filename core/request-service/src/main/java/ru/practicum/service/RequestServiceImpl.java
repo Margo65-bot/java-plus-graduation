@@ -3,6 +3,8 @@ package ru.practicum.service;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.client.ActionType;
+import ru.practicum.client.CollectorGrpcClient;
 import ru.practicum.dto.event.EventInternalDto;
 import ru.practicum.dto.event.EventRequestStatusUpdateResult;
 import ru.practicum.dto.event.State;
@@ -20,6 +22,7 @@ import ru.practicum.exception.NotFoundException;
 import ru.practicum.exception.ValidationException;
 import ru.practicum.repository.RequestRepository;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Transactional(readOnly = true)
 public class RequestServiceImpl implements RequestService {
+    private final CollectorGrpcClient collectorGrpcClient;
     private final RequestRepository requestRepository;
 
     private final UserClient userClient;
@@ -65,6 +69,8 @@ public class RequestServiceImpl implements RequestService {
                         .status(status)
                         .build()
         );
+
+        collectorGrpcClient.collectUserAction(userId, eventId, ActionType.ACTION_REGISTER, Instant.now());
 
         return RequestDtoMapper.mapRequestToDto(request);
     }
@@ -157,6 +163,13 @@ public class RequestServiceImpl implements RequestService {
                 RequestDtoMapper.mapRequestToDto(confirmedRequests),
                 RequestDtoMapper.mapRequestToDto(rejectedRequests)
         );
+    }
+
+    @Override
+    public void validateParticipant(Long eventId, Long userId) {
+        if (!requestRepository.existsByEventIdAndRequesterId(eventId, userId)) {
+            throw new ValidationException("Пользователь с id=" + userId + " не оставлял запрос на участие в мероприятии с id=" + eventId);
+        }
     }
 
     private Request getRequestById(long requestId) {

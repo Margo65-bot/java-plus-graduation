@@ -22,4 +22,6 @@ public interface RequestService {
     List<RequestInternalDto> findByEvent(Long eventId);
 
     EventRequestStatusUpdateResult updateStatuses(RequestStatusUpdateCommand command);
+
+    void validateParticipant(Long eventId, Long userId);
 }
