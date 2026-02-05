@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.category.model.Category;
 import ru.practicum.category.repository.CategoryRepository;
-import ru.practicum.client.StatsClient;
-import ru.practicum.dto.RequestStatsDto;
-import ru.practicum.dto.ResponseStatsDto;
+import ru.practicum.client.ActionType;
+import ru.practicum.client.AnalyzerGrpcClient;
+import ru.practicum.client.CollectorGrpcClient;
 import ru.practicum.dto.event.AdminEventParam;
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventInternalDto;
@@ -36,12 +36,14 @@ import ru.practicum.event.model.mapper.EventMapper;
 import ru.practicum.event.model.mapper.LocationMapper;
 import ru.practicum.event.model.mapper.ParticipationRequestMapper;
 import ru.practicum.event.repository.EventRepository;
+import ru.practicum.ewm.stats.proto.RecommendationMessages;
 import ru.practicum.exception.AccessDeniedException;
 import ru.practicum.exception.ConditionsNotMetException;
 import ru.practicum.exception.NotFoundException;
 import ru.practicum.event.util.OffsetBasedPageable;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Comparator;
@@ -57,17 +59,17 @@ public class EventServiceImpl implements
         AdminEventService,
         PublicEventService,
         PrivateEventService,
-        InternalEventService
-{
+        InternalEventService {
     private static final long MIN_HOURS_BEFORE_PUBLICATION_FOR_ADMIN = 1;
     private static final long MIN_HOURS_BEFORE_UPDATE_FOR_USER = 2;
     private static final LocalDateTime START_DATE_FOR_STAT_REQUEST = LocalDateTime.now().minusYears(1);
 
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
-    private final StatsClient statsClient;
     private final RequestClient requestClient;
     private final UserClient userClient;
+    private final AnalyzerGrpcClient analyzerGrpcClient;
+    private final CollectorGrpcClient collectorGrpcClient;
     private final EventMapper eventMapper;
     private final LocationMapper locationMapper;
 
@@ -82,7 +84,7 @@ public class EventServiceImpl implements
         List<Event> events = eventRepository
                 .findAll(EventRepository.Predicate.adminFilters(params), pageable).getContent();
 
-        setViewsAndConfirmedRequests(events);
+        setRatingAndConfirmedRequests(events);
 
         return events.stream()
                 .map(eventMapper::toFullDto)
@@ -97,7 +99,7 @@ public class EventServiceImpl implements
 
         updateEvent(event, updateRequest);
 
-        setViewsAndConfirmedRequests(event);
+        setRatingAndConfirmedRequests(event);
         return eventMapper.toFullDto(eventRepository.save(event));
     }
 
@@ -122,7 +124,7 @@ public class EventServiceImpl implements
         }
 
         if (params.onlyAvailable() == null || !params.onlyAvailable()) {
-            setViewsAndConfirmedRequests(events);
+            setRatingAndConfirmedRequests(events);
 
             Comparator<EventShortDto> comparator =
                     createEventShortDtoComparator(params.sort());
@@ -155,7 +157,7 @@ public class EventServiceImpl implements
             return Collections.emptyList();
         }
 
-        setViewsAndConfirmedRequests(availableEvents);
+        setRatingAndConfirmedRequests(availableEvents);
 
         Comparator<EventShortDto> comparator =
                 createEventShortDtoComparator(params.sort());
@@ -167,13 +169,45 @@ public class EventServiceImpl implements
     }
 
     @Override
-    public EventFullDto findPublicEventById(Long eventId) {
+    public EventFullDto findPublicEventById(Long eventId, Long userId) {
         Event event = eventRepository.findByIdAndState(eventId, State.PUBLISHED)
                 .orElseThrow(
                         () -> new NotFoundException(String.format("Event with id %d not found", eventId))
                 );
-        setViewsAndConfirmedRequests(event);
+        setRatingAndConfirmedRequests(event);
+        collectorGrpcClient.collectUserAction(userId, eventId, ActionType.ACTION_VIEW, Instant.now());
         return eventMapper.toFullDto(event);
+    }
+
+    @Override
+    public List<EventShortDto> getRecommendationsForUser(Long userId) {
+        List<RecommendationMessages.RecommendedEventProto> recommendedEvents = analyzerGrpcClient
+                .getRecommendationsForUser(userId, 10)
+                .toList();
+
+        Map<Long, Double> scoreByEvent = recommendedEvents.stream()
+                .collect(Collectors.toMap(
+                                RecommendationMessages.RecommendedEventProto::getEventId,
+                                RecommendationMessages.RecommendedEventProto::getScore
+                        )
+                );
+
+        List<Event> events = eventRepository.findAllById(
+                recommendedEvents.stream()
+                        .map(RecommendationMessages.RecommendedEventProto::getEventId)
+                        .toList()
+        );
+
+        return events.stream()
+                .peek(event -> event.setRating(scoreByEvent.get(event.getId())))
+                .map(eventMapper::toShortDto)
+                .toList();
+    }
+
+    @Override
+    public void addLike(Long eventId, Long userId) {
+        requestClient.validateParticipant(eventId, userId);
+        collectorGrpcClient.collectUserAction(userId, eventId, ActionType.ACTION_LIKE, Instant.now());
     }
 
     // PRIVATE METHODS
@@ -189,7 +223,7 @@ public class EventServiceImpl implements
         Pageable pageable = new OffsetBasedPageable(from, size, defaultSort);
         List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
 
-        setViewsAndConfirmedRequests(events);
+        setRatingAndConfirmedRequests(events);
 
         return events.stream()
                 .map(eventMapper::toShortDto)
@@ -215,7 +249,7 @@ public class EventServiceImpl implements
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId).orElseThrow(
                 () -> new NotFoundException(String.format("Event with id %d by user %d not found", eventId, userId))
         );
-        setViewsAndConfirmedRequests(event);
+        setRatingAndConfirmedRequests(event);
         return eventMapper.toFullDto(event);
     }
 
@@ -237,7 +271,7 @@ public class EventServiceImpl implements
 
         updateEvent(event, updateRequest);
         eventRepository.save(event);
-        setViewsAndConfirmedRequests(event);
+        setRatingAndConfirmedRequests(event);
 
         return eventMapper.toFullDto(event);
     }
@@ -314,61 +348,21 @@ public class EventServiceImpl implements
 
     // HELPER METHODS
 
-    private Map<Long, Long> getViewsForEvents(List<Long> eventIds) {
-        if (eventIds.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        List<String> uris = eventIds.stream()
-                .map(id -> "/events/" + id)
-                .collect(Collectors.toList());
-
-        List<ResponseStatsDto> stats = statsClient.get(createRequestStatsDto(uris, true));
-
-        return stats.stream()
+    private Map<Long, Double> getRatingForEvents(List<Long> eventIds) {
+        return analyzerGrpcClient.getInteractionsCount(eventIds)
                 .collect(Collectors.toMap(
-                        stat -> extractEventIdFromUri(stat.uri()),
-                        ResponseStatsDto::hits,
-                        (existing, replacement) -> existing
+                        RecommendationMessages.RecommendedEventProto::getEventId,
+                        RecommendationMessages.RecommendedEventProto::getScore
                 ));
     }
 
-    private Long extractEventIdFromUri(String uri) {
-        try {
-            return Long.parseLong(uri.replace("/events/", ""));
-        } catch (NumberFormatException e) {
-            return -1L;
-        }
-    }
-
-    private Long getViews(Long eventId) {
-        List<String> uris = List.of("/events/" + eventId);
-        Long views = 0L;
-        try {
-            views = statsClient.get(createRequestStatsDto(uris, true))
-                    .getFirst()
-                    .hits();
-        } catch (Exception e) {
-            return views;
-        }
-        return views;
-    }
-
-    private RequestStatsDto createRequestStatsDto(List<String> uris, boolean unique) {
-        return new RequestStatsDto(
-                START_DATE_FOR_STAT_REQUEST,
-                LocalDateTime.now(),
-                uris,
-                unique
-        );
-    }
-
-    private void setViewsAndConfirmedRequests(Event event) {
-        setViews(event);
+    private void setRatingAndConfirmedRequests(Event event) {
+        Map<Long, Double> ratingMap = getRatingForEvents(List.of(event.getId()));
+        event.setRating(ratingMap.getOrDefault(event.getId(), 0.0));
         event.setConfirmedRequests(requestClient.findConfirmedRequestsCountForOne(event.getId()));
     }
 
-    private void setViewsAndConfirmedRequests(List<Event> events) {
+    private void setRatingAndConfirmedRequests(List<Event> events) {
         if (events == null || events.isEmpty()) {
             return;
         }
@@ -377,17 +371,13 @@ public class EventServiceImpl implements
                 .map(Event::getId)
                 .collect(Collectors.toList());
 
-        Map<Long, Long> viewsMap = getViewsForEvents(eventIds);
+        Map<Long, Double> ratingsMap = getRatingForEvents(eventIds);
         Map<Long, Long> confirmedRequestsMap = requestClient.findConfirmedRequestsCountForList(eventIds);
 
         events.forEach(event -> {
-            event.setViews(viewsMap.getOrDefault(event.getId(), 0L));
+            event.setRating(ratingsMap.getOrDefault(event.getId(), 0.0));
             event.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0L));
         });
-    }
-
-    private void setViews(Event event) {
-        event.setViews(getViews(event.getId()));
     }
 
     private void updateEvent(Event event, UpdateEventUserRequest updateRequest) {
@@ -484,7 +474,7 @@ public class EventServiceImpl implements
             comparator = (a, b) -> 0;
         } else {
             comparator = switch (sort) {
-                case VIEWS -> Comparator.comparing(EventShortDto::views).reversed();
+                case RATING -> Comparator.comparing(EventShortDto::rating).reversed();
                 case EVENT_DATE -> Comparator.comparing(EventShortDto::eventDate);
             };
         }

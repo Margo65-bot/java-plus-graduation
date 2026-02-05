@@ -21,8 +21,14 @@ public interface InternalRequestApi {
     @GetMapping("/event/{eventId}")
     List<RequestInternalDto> findByEvent(@PathVariable Long eventId);
 
-    @PostMapping("/internal/requests/status")
+    @PostMapping("/status")
     EventRequestStatusUpdateResult updateStatuses(
             @RequestBody RequestStatusUpdateCommand command
+    );
+
+    @PostMapping("/event/{eventId}/participants/{userId}")
+    void validateParticipant(
+            @PathVariable Long eventId,
+            @PathVariable Long userId
     );
 }

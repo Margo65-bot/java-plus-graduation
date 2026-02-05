@@ -8,6 +8,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import ru.practicum.dto.event.EventFullDto;
@@ -29,6 +31,19 @@ public interface PublicEventApi {
     @ResponseStatus(HttpStatus.OK)
     EventFullDto findPublicEventById(
             @Positive(message = "eventId должен быть больше 0") @PathVariable Long eventId,
-            HttpServletRequest request
+            @RequestHeader("X-EWM-USER-ID") @Positive(message = "userId должен быть больше 0") Long userId
+    );
+
+    @GetMapping("/recommendations")
+    @ResponseStatus(HttpStatus.OK)
+    List<EventShortDto> getRecommendationsForUser(
+            @RequestHeader("X-EWM-USER-ID") @Positive(message = "userId должен быть больше 0") Long userId
+    );
+
+    @PutMapping("/{eventId}/like")
+    @ResponseStatus(HttpStatus.OK)
+    void addLike(
+            @Positive(message = "eventId должен быть больше 0") @PathVariable Long eventId,
+            @RequestHeader("X-EWM-USER-ID") @Positive(message = "userId должен быть больше 0") Long userId
     );
 }

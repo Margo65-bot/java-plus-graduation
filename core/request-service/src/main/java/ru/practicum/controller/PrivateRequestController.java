@@ -15,6 +15,7 @@ import java.util.List;
 public class PrivateRequestController implements PrivateRequestApi {
     private final RequestService requestService;
 
+
     @Override
     public ParticipationRequestDto createRequest(long userId, long eventId) {
         log.info("Private: creating request for userId={}, eventId={}", userId, eventId);

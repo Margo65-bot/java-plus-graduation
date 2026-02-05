@@ -33,10 +33,10 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @JoinColumn(name = "author_id")
+    @Column(name = "author_id")
     private Long authorId;
 
-    @JoinColumn(name = "event_id")
+    @Column(name = "event_id")
     private Long eventId;
 
     @Column(nullable = false)
