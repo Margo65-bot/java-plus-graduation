@@ -139,8 +139,7 @@ public class EventServiceImpl implements
                 .map(Event::getId)
                 .toList();
 
-        Map<Long, Long> confirmedCounts =
-                requestClient.findConfirmedRequestsCountForList(eventIds);
+        Map<Long, Long> confirmedCounts = requestClient.findConfirmedRequestsCountForList(eventIds);
 
         List<Event> availableEvents = events.stream()
                 .filter(event -> {
@@ -159,8 +158,7 @@ public class EventServiceImpl implements
 
         setRatingAndConfirmedRequests(availableEvents);
 
-        Comparator<EventShortDto> comparator =
-                createEventShortDtoComparator(params.sort());
+        Comparator<EventShortDto> comparator = createEventShortDtoComparator(params.sort());
 
         return availableEvents.stream()
                 .map(eventMapper::toShortDto)
