@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface InternalUserApi {
-    @GetMapping("/{userId}/validate")
+    @PostMapping("/{userId}/validate")
     void validateUser(@PathVariable Long userId);
 
     @GetMapping("/{userId}")

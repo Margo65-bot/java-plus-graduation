@@ -33,40 +33,4 @@ public interface PrivateRequestApi {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     List<ParticipationRequestDto> getUserRequests(@PathVariable(name = "userId") long userId);
-
-    // ЗАЯВКИ НА КОНКРЕТНОЕ СОБЫТИЕ
-
-//    // Изменение статуса (подтверждена, отменена) заявок на участие в событии текущего пользователя
-//    @PatchMapping("/users/{userId}/events/{eventId}/requests")
-//    @ResponseStatus(HttpStatus.OK)
-//    EventRequestStatusUpdateResultDto moderateRequest(
-//            @PathVariable @Positive(message = "User Id not valid") Long userId,
-//            @PathVariable @Positive(message = "Event Id not valid") Long eventId,
-//            @RequestBody @Valid EventRequestStatusUpdateRequestDto updateRequestDto
-//    );
-//
-//    // Получение информации о запросах на участие в событии текущего пользователя
-//    @GetMapping("/users/{userId}/events/{eventId}/requests")
-//    @ResponseStatus(HttpStatus.OK)
-//    Collection<ParticipationRequestDto> getEventRequests(
-//            @PathVariable @Positive(message = "User Id not valid") Long userId,
-//            @PathVariable @Positive(message = "Event Id not valid") Long eventId
-//    );
-//
-//    // INTERACTION API
-//
-//    // Запрос количества подтвержденных заявок по списку eventId
-//    @PostMapping("/requests/confirmed")
-//    @ResponseStatus(HttpStatus.OK)
-//    Map<Long, Long> getConfirmedRequestsByEventIds(
-//            @RequestBody Collection<Long> eventIds
-//    );
-//
-//    // Проверка участия пользователя в конкретном событии перед лайком
-//    @GetMapping("/users/{userId}/events/{eventId}/check/participation")
-//    @ResponseStatus(HttpStatus.OK)
-//    String checkParticipation(
-//            @PathVariable @Positive(message = "User Id not valid") Long userId,
-//            @PathVariable @Positive(message = "Event Id not valid") Long eventId
-//    );
 }

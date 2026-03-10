@@ -44,4 +44,10 @@ public class InternalRequestController implements InternalRequestApi {
         log.info("Internal: updateStatuses(RequestStatusUpdateCommand command={})", command);
         return requestService.updateStatuses(command);
     }
+
+    @Override
+    public void validateParticipant(Long eventId, Long userId) {
+        log.info("validateParticipant(Long eventId={}, Long userId={})", eventId, userId);
+        requestService.validateParticipant(eventId, userId);
+    }
 }
